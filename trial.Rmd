@@ -32,6 +32,8 @@ data <- read.csv("C:/Users/Prashant/Downloads/Indian Startup.csv")
 
 Lets have a look at the data
 
+I will list out column names
+
 ```{r}
 colnames(data)
 summary(data)
