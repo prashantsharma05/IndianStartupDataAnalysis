@@ -36,7 +36,7 @@ I will list out column names
 
 ```{r}
 colnames(data)
-summary(data)
+
 ```
 
 As we can see that our data consists of information about the brand,founding year, city of origin, investors etc..
