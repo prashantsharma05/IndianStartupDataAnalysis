@@ -1,0 +1,165 @@
+---
+title: "Indian Startup Scenario"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+## Importing the libraries
+### Here we import all the libraries we will need for the data analysis
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(formattable)
+library(gt)
+library(dplyr)
+library(stringr)
+library(DT)
+```
+
+## Data reading and cleaning
+
+First we will read the data 
+```{r}
+options(scipen = 999)
+data <- read.csv("C:/Users/Prashant/Downloads/Indian Startup.csv")
+
+```
+
+Lets have a look at the data
+
+```{r}
+colnames(data)
+summary(data)
+```
+
+As we can see that our data consists of information about the brand,founding year, city of origin, investors etc..
+
+Now we will clean and filter the data as per our requirements
+
+Here i have filtered the database to reflect the data from 2010 to 2020 as this study will be focussed on these 10 years.
+
+```{r}
+data <- data %>%
+  filter(Founded > '2010' & Founded <= '2020')
+```
+
+Here we will format the columns for proper datatypes and removing incorrect data from the dataset
+
+```{r}
+data$Amount = str_sub(data$Amount,2,20)
+data$Amount = gsub(",","",data$Amount,fixed = TRUE)
+data$Amount[data$Amount == 'Undisclosed'] <- 0
+data$Amount <- as.numeric(data$Amount)
+data <- remove_missing(data)
+data$Founded <- as.character((data$Founded),format = "%Y")
+```
+
+
+### We are about to dive into an analysis of the data about the startups in India and funding that they have received over the years.
+
+### Number of startups founded from 2010 to 2020
+
+```{r}
+ggplot(data %>%
+         filter(Headquarters %in% head(data %>%
+                                       count(Headquarters,sort = 10),n = 10)$Headquarters[c(1:5)])) +
+         geom_bar(mapping = aes(x = Founded,fill = Headquarters),position = 'dodge')
+```
+
+### Top funded 10 sectors
+
+The overall top funded sectors of the market
+```{r}
+datatable(data %>%
+  select(Sector,Amount)%>%
+  group_by(Sector)%>%
+  summarise(tot_am = sum(Amount))%>%
+  arrange(desc(tot_am))) %>% formatCurrency('tot_am',"$")
+```
+
+### How did different sectors got funded in the last 5 years?
+
+```{r}
+ggplot(data %>%
+         filter(Founded == 2016) %>%
+         select(Sector,Amount,Founded) %>%
+         group_by(Sector,Founded) %>%
+         summarize(tot_amount=sum(Amount))%>%
+         arrange(desc(tot_amount))%>%
+         head(n = 5)) +
+  geom_col(mapping = aes(x = Sector,y = tot_amount,fill = Sector))+
+  labs(title = 'Top 5 sectors in 2016',x = 'Sector',y = 'Total Amount Funded')+
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+```{r echo = FALSE}
+ggplot(data %>%
+         filter(Founded == 2017) %>%
+         select(Sector,Amount,Founded) %>%
+         group_by(Sector,Founded) %>%
+         summarize(tot_amount=sum(Amount))%>%
+         arrange(desc(tot_amount))%>%
+         head(n = 5)) +
+  geom_col(mapping = aes(x = Sector,y = tot_amount,fill = Sector))+
+  labs(title = 'Top 5 sectors in 2017',x = 'Sector',y = 'Total Amount Funded')+
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+```{r echo = FALSE}
+ggplot(data %>%
+         filter(Founded == 2018) %>%
+         select(Sector,Amount,Founded) %>%
+         group_by(Sector,Founded) %>%
+         summarize(tot_amount=sum(Amount))%>%
+         arrange(desc(tot_amount))%>%
+         head(n = 5)) +
+  geom_col(mapping = aes(x = Sector,y = tot_amount,fill = Sector))+
+  labs(title = 'Top 5 sectors in 2018',x = 'Sector',y = 'Total Amount Funded')+
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+```{r echo = FALSE}
+ggplot(data %>%
+         filter(Founded == 2019) %>%
+         select(Sector,Amount,Founded) %>%
+         group_by(Sector,Founded) %>%
+         summarize(tot_amount=sum(Amount))%>%
+         arrange(desc(tot_amount))%>%
+         head(n = 5)) +
+  geom_col(mapping = aes(x = Sector,y = tot_amount,fill = Sector))+
+  labs(title = 'Top 5 sectors in 2019',x = 'Sector',y = 'Total Amount Funded')+
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+```{r echo = FALSE}
+ggplot(data %>%
+         filter(Founded == 2020) %>%
+         select(Sector,Amount,Founded) %>%
+         group_by(Sector,Founded) %>%
+         summarize(tot_amount=sum(Amount))%>%
+         arrange(desc(tot_amount))%>%
+         head(n = 5)) +
+  geom_col(mapping = aes(x = Sector,y = tot_amount,fill = Sector))+
+  labs(title = 'Top 5 sectors in 2020',x = 'Sector',y = 'Total Amount Funded')+
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+```
+
+### Top 10 cities with startups
+
+This is table of top 10 cities with highest number of startups over the period of 10 years
+
+```{r}
+data %>%
+  count(Headquarters,sort = TRUE) %>%
+  head(n = 10) %>%
+  gt(rowname_col = 'Headquarters') %>%
+  tab_header(
+    title = md('Top 10 cities with startups')
+  ) %>%
+  cols_label(n = 'Number of Startups') %>%
+  cols_align(align = 'center')%>%
+  cols_width(n ~ px(100))
+```
+
+
